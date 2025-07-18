@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -10,11 +11,127 @@ import {
   Home,
   Factory
 } from "lucide-react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import environmentImage from "@/assets/environment-impact.jpg";
 import inequalityImage from "@/assets/inequality-gap.jpg";
 import resourceImage from "@/assets/resource-depletion.jpg";
 
+gsap.registerPlugin(ScrollTrigger);
+
 const ImpactSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Title animation
+      ScrollTrigger.create({
+        trigger: titleRef.current,
+        start: "top 80%",
+        onEnter: () => {
+          gsap.fromTo(titleRef.current, {
+            y: 60,
+            opacity: 0,
+            scale: 0.9
+          }, {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 1,
+            ease: "power3.out"
+          });
+        }
+      });
+
+      // Impact cards animations
+      const impactCards = document.querySelectorAll('.impact-card');
+      impactCards.forEach((card, index) => {
+        const image = card.querySelector('.impact-image');
+        const content = card.querySelector('.impact-content');
+        const stats = card.querySelectorAll('.stat-card');
+
+        ScrollTrigger.create({
+          trigger: card,
+          start: "top 75%",
+          onEnter: () => {
+            const tl = gsap.timeline();
+            
+            // Image animation with 3D effect
+            tl.fromTo(image, {
+              rotationY: index % 2 === 0 ? -90 : 90,
+              opacity: 0,
+              scale: 0.8
+            }, {
+              rotationY: 0,
+              opacity: 1,
+              scale: 1,
+              duration: 1.2,
+              ease: "power3.out"
+            })
+            // Content animation
+            .fromTo(content, {
+              x: index % 2 === 0 ? -100 : 100,
+              opacity: 0
+            }, {
+              x: 0,
+              opacity: 1,
+              duration: 0.8,
+              ease: "power2.out"
+            }, "-=0.6")
+            // Stats stagger animation
+            .fromTo(stats, {
+              y: 30,
+              opacity: 0,
+              rotationX: 45
+            }, {
+              y: 0,
+              opacity: 1,
+              rotationX: 0,
+              duration: 0.6,
+              stagger: 0.2,
+              ease: "back.out(1.7)"
+            }, "-=0.4");
+          }
+        });
+
+        // Hover animations for cards
+        card.addEventListener('mouseenter', () => {
+          gsap.to(image, {
+            scale: 1.05,
+            rotationY: 5,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+          gsap.to(stats, {
+            y: -5,
+            duration: 0.3,
+            stagger: 0.1,
+            ease: "power2.out"
+          });
+        });
+
+        card.addEventListener('mouseleave', () => {
+          gsap.to(image, {
+            scale: 1,
+            rotationY: 0,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+          gsap.to(stats, {
+            y: 0,
+            duration: 0.3,
+            stagger: 0.1,
+            ease: "power2.out"
+          });
+        });
+      });
+
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   const impacts = [
     {
       id: "environment",
@@ -55,9 +172,9 @@ const ImpactSection = () => {
   ];
 
   return (
-    <section className="py-20 px-4">
+    <section ref={sectionRef} className="py-20 px-4">
       <div className="container mx-auto">
-        <div className="text-center mb-16 animate-fade-in">
+        <div ref={titleRef} className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
             The Real Cost of
             <span className="gradient-accent bg-clip-text text-transparent"> Unlimited Growth</span>
@@ -73,17 +190,17 @@ const ImpactSection = () => {
             <div
               key={impact.id}
               id={impact.id}
-              className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${
+              className={`impact-card grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${
                 index % 2 === 1 ? 'lg:grid-flow-col-dense' : ''
               }`}
             >
               {/* Image */}
-              <div className={`relative group ${index % 2 === 1 ? 'lg:col-start-2' : ''}`}>
+              <div className={`impact-image relative group ${index % 2 === 1 ? 'lg:col-start-2' : ''}`}>
                 <div className="relative overflow-hidden rounded-2xl shadow-elegant">
                   <img
                     src={impact.image}
                     alt={impact.title}
-                    className="w-full h-80 object-cover transition-smooth group-hover:scale-105"
+                    className="w-full h-80 object-cover transition-smooth"
                   />
                   <div className={`absolute inset-0 bg-gradient-to-br ${impact.gradient} opacity-60`}></div>
                   <div className="absolute top-6 left-6">
@@ -95,7 +212,7 @@ const ImpactSection = () => {
               </div>
 
               {/* Content */}
-              <div className={`animate-slide-in-left ${index % 2 === 1 ? 'lg:col-start-1' : ''}`}>
+              <div className={`impact-content ${index % 2 === 1 ? 'lg:col-start-1' : ''}`}>
                 <div className="flex items-center space-x-3 mb-4">
                   <div className="w-10 h-10 rounded-lg gradient-hero flex items-center justify-center">
                     <impact.icon className="w-5 h-5 text-primary-foreground" />
@@ -116,7 +233,7 @@ const ImpactSection = () => {
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-6 mb-8">
                   {impact.stats.map((stat, statIndex) => (
-                    <Card key={statIndex} className="p-4 hover:shadow-elegant transition-smooth">
+                    <Card key={statIndex} className="stat-card p-4 hover:shadow-elegant transition-smooth">
                       <div className="flex items-center space-x-3">
                         <stat.icon className="w-5 h-5 text-primary" />
                         <div>

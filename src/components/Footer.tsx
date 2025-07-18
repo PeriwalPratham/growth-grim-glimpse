@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Github, 
@@ -7,10 +8,89 @@ import {
   ArrowUp,
   Leaf
 } from "lucide-react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Footer = () => {
+  const footerRef = useRef<HTMLElement>(null);
+  const newsletterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Footer entrance animation
+      ScrollTrigger.create({
+        trigger: footerRef.current,
+        start: "top 90%",
+        onEnter: () => {
+          const tl = gsap.timeline();
+          
+          tl.fromTo(footerRef.current?.children || [], {
+            y: 50,
+            opacity: 0
+          }, {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: "power2.out"
+          });
+        }
+      });
+
+      // Newsletter section animation
+      ScrollTrigger.create({
+        trigger: newsletterRef.current,
+        start: "top 85%",
+        onEnter: () => {
+          gsap.fromTo(newsletterRef.current, {
+            scale: 0.9,
+            opacity: 0,
+            rotationX: 20
+          }, {
+            scale: 1,
+            opacity: 1,
+            rotationX: 0,
+            duration: 1,
+            ease: "back.out(1.7)"
+          });
+        }
+      });
+
+      // Social icons hover animations
+      const socialIcons = document.querySelectorAll('.social-icon');
+      socialIcons.forEach(icon => {
+        icon.addEventListener('mouseenter', () => {
+          gsap.to(icon, {
+            scale: 1.2,
+            rotation: 360,
+            duration: 0.4,
+            ease: "back.out(1.7)"
+          });
+        });
+
+        icon.addEventListener('mouseleave', () => {
+          gsap.to(icon, {
+            scale: 1,
+            rotation: 0,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+        });
+      });
+
+    }, footerRef);
+
+    return () => ctx.revert();
+  }, []);
+
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    gsap.to(window, {
+      scrollTo: { y: 0 },
+      duration: 1.5,
+      ease: "power2.inOut"
+    });
   };
 
   const footerLinks = {
@@ -35,7 +115,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-card border-t border-border">
+    <footer ref={footerRef} className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-16">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
@@ -52,16 +132,16 @@ const Footer = () => {
             </p>
             
             <div className="flex space-x-3">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="social-icon">
                 <Twitter className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="social-icon">
                 <Linkedin className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="social-icon">
                 <Github className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="social-icon">
                 <Mail className="w-4 h-4" />
               </Button>
             </div>
@@ -89,7 +169,7 @@ const Footer = () => {
 
         {/* Newsletter Signup */}
         <div className="border-t border-border pt-8 mb-8">
-          <div className="max-w-md mx-auto text-center">
+          <div ref={newsletterRef} className="max-w-md mx-auto text-center">
             <Leaf className="w-8 h-8 text-primary mx-auto mb-4" />
             <h4 className="font-semibold mb-2">Stay Informed</h4>
             <p className="text-muted-foreground text-sm mb-4">

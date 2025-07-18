@@ -157,4 +157,13 @@
   html {
     scroll-behavior: smooth;
   }
+
+  /* Remove old CSS animations since we're using GSAP */
+  .animate-fade-in,
+  .animate-slide-in-left,
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-bounce {
+    animation: none;
+  }
 }
